@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Ruff lint
+        run: uv run ruff check backend/ main.py
+
+      - name: Ruff format check
+        run: uv run ruff format --check backend/ main.py
+
+      - name: Run tests
+        run: uv run pytest --cov=backend/src --cov-report=term-missing
+        env:
+          # Placeholders only — every external call is mocked; no real keys needed.
+          SERPAPI_KEY: test-key-not-real
+          GEMINIAPI_KEY: test-key-not-real

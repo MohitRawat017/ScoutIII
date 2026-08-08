@@ -1,0 +1,57 @@
+{
+  "search_metadata": { "status": "Success" },
+  "search_information": { "query_displayed": "insulated water bottle", "total_results": 412 },
+  "organic_results": [
+    {
+      "position": 1,
+      "asin": "B01LP0U5X0",
+      "title": "HydroFlask Water Bottle 32 oz",
+      "link": "https://www.amazon.com/dp/B01LP0U5X0",
+      "link_clean": "https://www.amazon.com/dp/B01LP0U5X0",
+      "thumbnail": "https://m.media-amazon.com/images/I/example1.jpg",
+      "price": "$39.95",
+      "extracted_price": 39.95,
+      "rating": 4.8,
+      "reviews": 45231,
+      "bought_last_month": "10K+ bought in past month",
+      "badges": ["Best Seller"],
+      "prime": true,
+      "sponsored": false
+    },
+    {
+      "position": 2,
+      "asin": "B08XYZ1234",
+      "title": "SteelFlow Insulated Bottle 40 oz",
+      "link": "https://www.amazon.com/dp/B08XYZ1234",
+      "link_clean": "https://www.amazon.com/dp/B08XYZ1234",
+      "thumbnail": "https://m.media-amazon.com/images/I/example2.jpg",
+      "price": "$27.50",
+      "extracted_price": 27.5,
+      "rating": 4.3,
+      "reviews": 1890,
+      "bought_last_month": "2K+ bought in past month",
+      "badges": [],
+      "prime": true,
+      "sponsored": false
+    },
+    {
+      "position": 3,
+      "asin": "B07SPONS55",
+      "title": "AdStar Promo Bottle 24 oz",
+      "link": "https://www.amazon.com/dp/B07SPONS55",
+      "link_clean": "https://www.amazon.com/dp/B07SPONS55",
+      "thumbnail": "https://m.media-amazon.com/images/I/example3.jpg",
+      "price": "$19.99",
+      "extracted_price": 19.99,
+      "rating": 4.9,
+      "reviews": 500,
+      "badges": [],
+      "prime": false,
+      "sponsored": true
+    }
+  ],
+  "related_searches": [
+    { "query": "insulated water bottle 32 oz" },
+    { "query": "hydro flask alternatives" }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "product_results": {
+    "asin": "b01lp0u5x0",
+    "title": "HydroFlask Water Bottle 32 oz",
+    "brand": "HydroFlask",
+    "link": "https://www.amazon.com/dp/B01LP0U5X0",
+    "link_clean": "https://www.amazon.com/dp/B01LP0U5X0",
+    "price": "$39.95",
+    "extracted_price": 39.95,
+    "old_price": "$44.95",
+    "extracted_old_price": 44.95,
+    "discount": "11%",
+    "rating": 4.8,
+    "reviews": 45231,
+    "bought_last_month": "10K+ bought in past month",
+    "badges": ["Best Seller"],
+    "tags": ["bottles"],
+    "thumbnails": ["https://m.media-amazon.com/images/I/example1.jpg"],
+    "stock": "In Stock",
+    "delivery": ["FREE delivery"]
+  },
+  "about_item": ["Keeps drinks cold 24h", "BPA-free"],
+  "item_specifications": { "capacity": "32 oz", "material": "stainless steel" },
+  "product_details": { "manufacturer": "HydroFlask" },
+  "reviews_information": {
+    "summary": {
+      "text": "Customers love the insulation and durability.",
+      "insights": [
+        {
+          "title": "Insulation performance",
+          "sentiment": "POSITIVE",
+          "mentions": { "total": 320, "positive": 300, "negative": 20 },
+          "summary": "Keeps drinks cold for a full day.",
+          "examples": [
+            { "position": 1, "snippet": "Still ice cold after 24 hours", "link": "https://www.amazon.com/review/example" }
+          ]
+        }
+      ],
+      "customer_reviews": {
+        "5_star": 78,
+        "4_star": 14,
+        "3_star": 4,
+        "2_star": 2,
+        "1_star": 2
+      }
+    }
+  },
+  "compare_with_similar": [
+    { "asin": "B08XYZ1234", "title": "SteelFlow Insulated Bottle 40 oz", "rating": 4.3 }
+  ]
+}
