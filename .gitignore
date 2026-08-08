@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage*
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+
+# Node
+node_modules/
+.next/
+# frontend/ currently only contains local build artifacts (no source yet)
+frontend/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Local databases and cache
+*.db
+*.sqlite3
+.cache/
+
+# Secrets / local config
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Local-only phase plans
+plan/
+
+# AI assistant / agent workspace files — kept local, not published
+.agents/
+skills/
+prompts/
+specs/
+evaluations/
+scripts/
+templates/
+AGENTS.MD
+CLAUDE.MD
+opencode.json
+description.md
+docs/
+dev-server.log
