@@ -18,8 +18,6 @@ venv/
 # Node
 node_modules/
 .next/
-# frontend/ currently only contains local build artifacts (no source yet)
-frontend/
 
 # IDE / OS
 .idea/
