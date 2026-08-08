@@ -25,6 +25,8 @@ function isAbort(error: unknown): boolean {
   return error instanceof DOMException && error.name === "AbortError";
 }
 
+const INTERRUPTED_MSG = "The connection was interrupted mid-research. Please try again.";
+
 /**
  * Parses a single SSE frame (everything between two blank lines) and
  * dispatches the decoded event to `handlers`. Exported as a pure function
@@ -64,6 +66,30 @@ export function parseSseFrame(frame: string, handlers: ChatHandlers): void {
     default:
       break;
   }
+}
+
+/**
+ * Appends a stream chunk to the buffer, dispatches every complete SSE frame,
+ * and returns the leftover (incomplete) buffer.
+ *
+ * CRLF line endings are normalised to LF so we can split on "\n\n"
+ * regardless of the server's framing — sse-starlette emits "\r\n\r\n"
+ * separators, so a bare "\n\n" split would swallow the entire stream.
+ */
+export function processSseChunk(
+  buffer: string,
+  chunk: string,
+  handlers: ChatHandlers
+): string {
+  // Normalise the full buffer, not just the incoming chunk — a "\r\n" can
+  // straddle two chunks (buffer ends in "\r", chunk starts with "\n").
+  buffer = (buffer + chunk).replace(/\r\n/g, "\n");
+  let index: number;
+  while ((index = buffer.indexOf("\n\n")) !== -1) {
+    parseSseFrame(buffer.slice(0, index), handlers);
+    buffer = buffer.slice(index + 2);
+  }
+  return buffer;
 }
 
 /**
@@ -115,25 +141,47 @@ export async function streamChat(
   const decoder = new TextDecoder();
   let buffer = "";
 
+  // Track whether the stream reached a terminal event (`done` / `error`).
+  // If the connection dies mid-stream without one, we surface an interruption
+  // instead of leaving the UI stuck in "researching" forever.
+  let sawTerminal = false;
+  let sawData = false;
+  const dispatch: ChatHandlers = {
+    onProgress: handlers.onProgress,
+    onData: (d) => {
+      sawData = true;
+      handlers.onData(d);
+    },
+    onError: (m) => {
+      sawTerminal = true;
+      handlers.onError(m);
+    },
+    onRateLimit: handlers.onRateLimit,
+    onDone: () => {
+      sawTerminal = true;
+      handlers.onDone();
+    },
+  };
+
   try {
     for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-
-      let index: number;
-      while ((index = buffer.indexOf("\n\n")) !== -1) {
-        parseSseFrame(buffer.slice(0, index), handlers);
-        buffer = buffer.slice(index + 2);
-      }
+      buffer = processSseChunk(buffer, decoder.decode(value, { stream: true }), dispatch);
     }
     // flush any trailing frame without the blank-line terminator
-    if (buffer.trim()) parseSseFrame(buffer, handlers);
+    if (buffer.trim()) parseSseFrame(buffer, dispatch);
+    // Abrupt end of stream with no terminal event and no report — interrupted.
+    // (A report already received is kept; the backend always sends `done`
+    // after `data` in normal operation.)
+    if (!sawTerminal && !sawData) {
+      handlers.onError(INTERRUPTED_MSG);
+    }
   } catch (error) {
     if (isAbort(error)) {
       handlers.onDone(); // user-initiated stop — let the UI recover
       return;
     }
-    handlers.onError("The connection was interrupted mid-research. Please try again.");
+    handlers.onError(INTERRUPTED_MSG);
   }
 }
