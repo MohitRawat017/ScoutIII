@@ -43,6 +43,9 @@ class ChatResponse(BaseModel):
     answer: str
     warnings: list[str] = Field(default_factory=list)
     usage: dict = Field(default_factory=dict)
+    # Structured companion to `answer` (intent, analysis lists, slim product
+    # records, market stats) so the frontend can drive charts without parsing Markdown
+    structured: dict = Field(default_factory=dict)
 
 
 # ── Structured LLM Outputs ─────────────────────────────────────────────────────

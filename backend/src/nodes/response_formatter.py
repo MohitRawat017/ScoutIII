@@ -14,6 +14,41 @@ from backend.src.models import AgentState, ChatResponse
 
 logger = logging.getLogger(__name__)
 
+# Chart-friendly subset of an aggregated product record — values passed through as-is
+_STRUCTURED_PRODUCT_FIELDS = (
+    "asin",
+    "title",
+    "link",
+    "brand",
+    "rank",
+    "extracted_price",
+    "rating",
+    "reviews",
+    "bought_last_month",
+    "reviews_histogram",
+    "review_insights",
+    "revenue_estimate",
+    "score",
+)
+
+
+def _build_structured(state: AgentState) -> dict:
+    """Assemble the structured companion to the Markdown `answer` so the
+    frontend can drive charts/tables without parsing Markdown."""
+    analysis = state.get("analysis") or {}
+    return {
+        "intent": state.get("intent", ""),
+        "top_purchase_drivers": analysis.get("top_purchase_drivers") or [],
+        "common_complaints": analysis.get("common_complaints") or [],
+        "sentiment_themes": analysis.get("sentiment_themes") or [],
+        "competitive_gaps": analysis.get("competitive_gaps") or [],
+        "products": [
+            {field: product.get(field) for field in _STRUCTURED_PRODUCT_FIELDS}
+            for product in (state.get("aggregated_products") or [])
+        ],
+        "market_stats": analysis.get("market_stats") or {},
+    }
+
 
 def response_formatter_node(state: AgentState) -> dict:
     analysis = state.get("analysis") or {}
@@ -37,5 +72,7 @@ def response_formatter_node(state: AgentState) -> dict:
         usage["serpapi_calls"],
     )
 
-    response = ChatResponse(answer=answer, warnings=errors, usage=usage)
+    response = ChatResponse(
+        answer=answer, warnings=errors, usage=usage, structured=_build_structured(state)
+    )
     return {"response": response.model_dump()}

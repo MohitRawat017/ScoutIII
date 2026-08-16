@@ -11,7 +11,7 @@ event: progress
 data: {"step": "<node_name>", "message": "<human readable status>"}
 
 event: data
-data: {"answer": "<full Markdown report>"}
+data: {"answer": "<full Markdown report>", "structured": {...}, "usage": {...}, "duration_ms": ...}
 
 event: error
 data: {"error": "<message>"}
