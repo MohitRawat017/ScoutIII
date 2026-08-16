@@ -72,7 +72,6 @@ _INITIAL_STATE_TEMPLATE = {
     "keywords": [],
     "asins": [],
     "top_n": 6,
-    "tool_plan": [],
     "raw_search_results": {},
     "raw_product_details": [],
     "aggregated_products": [],
