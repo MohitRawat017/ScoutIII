@@ -7,7 +7,8 @@ import { streamChat } from "@/lib/api";
 import type { ChatPhase, DataPayload, ProgressPayload } from "@/lib/types";
 import QueryForm from "./QueryForm";
 import ProgressRail from "./ProgressRail";
-import ReportView from "./ReportView";
+import StructuredReport from "@/components/report/StructuredReport";
+import ReportSkeleton from "@/components/report/ReportSkeleton";
 import WarningsBanner from "./WarningsBanner";
 import UsageChip from "./UsageChip";
 import ErrorState from "./ErrorState";
@@ -88,6 +89,7 @@ export default function ChatWorkspace({
       {phase === "researching" && (
         <>
           <ProgressRail seen={progress} />
+          <ReportSkeleton />
           <div className="research-meta">
             <span className="research-status" aria-live="polite">
               <span className="pill-dot" aria-hidden="true" />
@@ -107,7 +109,7 @@ export default function ChatWorkspace({
             <h2>Research report</h2>
             <UsageChip usage={report.usage} durationMs={report.duration_ms} />
           </div>
-          <ReportView markdown={report.answer} />
+          <StructuredReport report={report} />
           <div className="research-meta">
             <span />
             <button type="button" className="btn btn-ghost btn-sm" onClick={startNew}>

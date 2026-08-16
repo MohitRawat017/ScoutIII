@@ -158,3 +158,26 @@ async def test_full_graph_node_failure_completes_with_partial_notice(
     assert "Partial results" in response["answer"]  # formatter prepends notice
     assert any("react_agent" in w for w in response["warnings"])  # failure surfaced
     assert result["aggregated_products"] == []  # downstream nodes still ran
+
+
+async def test_full_graph_structured_payload(mocker, sample_analysis_output):
+    _mock_pipeline(mocker, sample_analysis_output)
+
+    result = await agent_graph.ainvoke(_initial_state())
+
+    structured = result["response"]["structured"]
+    assert structured["intent"] == "search"
+    assert structured["top_purchase_drivers"] == sample_analysis_output["top_purchase_drivers"]
+    assert structured["common_complaints"] == sample_analysis_output["common_complaints"]
+    assert structured["sentiment_themes"] == sample_analysis_output["sentiment_themes"]
+    assert structured["competitive_gaps"] == sample_analysis_output["competitive_gaps"]
+    assert structured["market_stats"]["total_products_analyzed"] == 1
+
+    # Slimmed product records carry chart inputs with values passed through as-is
+    product = structured["products"][0]
+    assert product["asin"] == "B01LP0U5X0"
+    assert product["rating"] == 4.8
+    assert product["extracted_price"] == 39.95
+    assert product["reviews_histogram"] == {"5_star": 78}
+    assert product["revenue_estimate"]["monthly_sales_est"] == 10000
+    assert "about_item" not in product  # heavyweight raw fields stay out
