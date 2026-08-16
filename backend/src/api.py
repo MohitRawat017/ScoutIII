@@ -38,6 +38,7 @@ from backend.src.cost import reset_serpapi_calls
 from backend.src.logging_config import set_request_id
 from backend.src.models import ChatRequest
 from backend.src.rate_limit import is_allowed, retry_after
+from backend.src.tools.product import reset_detail_fetches
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -71,7 +72,6 @@ _INITIAL_STATE_TEMPLATE = {
     "keywords": [],
     "asins": [],
     "top_n": 6,
-    "tool_plan": [],
     "raw_search_results": {},
     "raw_product_details": [],
     "aggregated_products": [],
@@ -95,6 +95,7 @@ async def _event_stream(message: str) -> AsyncIterator[dict]:
     request_id = str(uuid.uuid4())
     set_request_id(request_id)
     reset_serpapi_calls()
+    reset_detail_fetches()
     start_time = time.monotonic()
 
     if not message or not message.strip():
@@ -187,6 +188,7 @@ async def chat_sync(request: ChatRequest, raw_request: Request) -> JSONResponse:
     request_id = str(uuid.uuid4())
     set_request_id(request_id)
     reset_serpapi_calls()
+    reset_detail_fetches()
     start_time = time.monotonic()
 
     initial_state = {

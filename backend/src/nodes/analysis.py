@@ -281,7 +281,7 @@ def analysis_node(state: AgentState) -> dict:
                 "common_complaints": [],
                 "sentiment_themes": [],
                 "competitive_gaps": [],
-                "answer": " Analysis could not be completed due to an internal error. Please try again.",
+                "answer": "Analysis could not be completed due to an internal error. Please try again.",
             },
             "errors": errors,
         }

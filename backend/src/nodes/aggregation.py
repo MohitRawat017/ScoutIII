@@ -86,14 +86,7 @@ def _aggregate(state: AgentState) -> dict:
         logger.warning("aggregation_node: no products to aggregate")
         return {
             "aggregated_products": [],
-            "analysis": {
-                "market_stats": {
-                    "price_range": {},
-                    "avg_rating": None,
-                    "total_reviews_analyzed": 0,
-                    "total_products_analyzed": 0,
-                }
-            },
+            "analysis": {"market_stats": dict(_EMPTY_MARKET_STATS)},
         }
 
     # Build lookup: asin → detail
