@@ -16,11 +16,23 @@ already aggregated across ALL reviews by Amazon and are far richer than the
 from __future__ import annotations
 
 import logging
+from contextvars import ContextVar
 
 from backend.src.cache import get_cached, set_cached
 from backend.src.config import PRODUCT_CACHE_TTL_SECONDS, call_serpapi
 
 logger = logging.getLogger(__name__)
+
+# AGENTS.md rate-limit rule: at most 8 get_product_details SerpApi calls per
+# request. Enforced in code so a prompt-ignoring LLM loop cannot overspend;
+# cache hits cost nothing and are not counted. The API layer resets the
+# counter at the start of each request (same ContextVar pattern as cost.py).
+_DETAIL_FETCH_LIMIT = 8
+_detail_fetches: ContextVar[int] = ContextVar("detail_fetches", default=0)
+
+
+def reset_detail_fetches() -> None:
+    _detail_fetches.set(0)
 
 
 def get_product_details(asin: str) -> dict:
@@ -39,6 +51,14 @@ def get_product_details(asin: str) -> dict:
         logger.info("Cache hit for product %s", asin_key)
         return cached
 
+    if _detail_fetches.get() >= _DETAIL_FETCH_LIMIT:
+        logger.warning("Detail-fetch limit reached; skipping %s", asin_key)
+        return {
+            "asin": asin_key,
+            "error": f"detail-fetch limit reached ({_DETAIL_FETCH_LIMIT} per request)",
+        }
+
+    _detail_fetches.set(_detail_fetches.get() + 1)
     raw = call_serpapi(
         {"engine": "amazon_product", "asin": asin_key, "amazon_domain": "amazon.com"}
     )
