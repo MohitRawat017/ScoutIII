@@ -1,47 +1,47 @@
 # Contributing to Scoutii
 
-Thanks for taking the time to contribute. This document covers the minimum you
-need to get the project running and land a change. The canonical rules live in
-`docs/standards/` — when in doubt, those win over this file.
+Thanks for taking the time to contribute. This covers the minimum you need to
+get the project running and land a change.
 
-## Dev Environment Setup
+## Dev environment
 
 1. Install [uv](https://docs.astral.sh/uv/) and Python 3.12 (see `.python-version`).
-2. Install dependencies:
+2. Install Node.js 20.9+ for the web frontend (Node 22 LTS recommended).
+3. Install dependencies:
    ```bash
    uv sync
    ```
-3. Copy `.env.example` to `.env` and fill in your keys:
+4. Copy `.env.example` to `.env` and fill in your keys:
    ```
    SERPAPI_KEY=your_serpapi_key
    GEMINIAPI_KEY=your_gemini_api_key
    ```
-   Never commit `.env` or expose keys in logs — see the core rules in `AGENTS.md`.
+   Never commit `.env` or expose keys in logs.
 
-## Running the Project
+## Running the project
 
 ```bash
-# FastAPI server (SSE chat API) on :8000
+# FastAPI server (chat API on :8000) — what the web frontend talks to
 uv run python main.py
 
 # LangGraph dev server + Studio UI
 uv run langgraph dev
 
-# Web frontend on :3000 (expects the backend at NEXT_PUBLIC_API_URL)
+# Web frontend on :3000
 cd frontend
 cp .env.local.example .env.local
-npm install
+npm ci
 npm run dev
 ```
 
-## Code Style
+## Code style
 
-- Lint and format with Ruff before every commit (required by `docs/standards/git.md`):
-  ```bash
-  uv run ruff check backend/
-  uv run ruff format backend/
-  ```
-- Conventions (naming, placement, design rules): `docs/standards/coding.md`.
+Lint and format with ruff before every commit:
+
+```bash
+uv run ruff check backend/ main.py
+uv run ruff format backend/ main.py
+```
 
 ## Tests
 
@@ -49,18 +49,12 @@ npm run dev
 uv run pytest
 ```
 
-A real test suite lands with Phase 1b (see `docs/product/roadmap.md`). Until
-then, `uv run pytest` will report "no tests ran" — that is expected.
+The suite covers nodes, tools, the resilience layer and the full graph
+(unit + integration; every external call is mocked, no keys needed). CI runs
+it with coverage, alongside ruff and the frontend lint + build.
 
-## Branches, Commits, PRs
+## Commits and pull requests
 
 - Branch from `main` using prefixes: `feat/`, `fix/`, `chore/`, `docs/`, `refactor/`.
-- Commit messages follow Conventional Commits with repo scopes
-  (`agent`, `api`, `nodes`, `tools`, `config`, `models`, `docs`, `infra`).
-- One logical change per PR. Full rules: `docs/standards/git.md`.
-
-## Phase Work
-
-Active phase plans live in the local `plan/` folder (not committed to git).
-Read the relevant `plan/phase-*.md` before starting work on a phase, and check
-`docs/product/roadmap.md` for current phase status.
+- Conventional Commit messages, e.g. `feat(nodes): ...`, `fix(tools): ...`.
+- One logical change per PR, and keep CI green.
