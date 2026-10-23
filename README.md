@@ -36,8 +36,10 @@ live while the agent works.
  │                      │   stats and revenue estimates are computed.
  └──────────┬───────────┘
             ▼
- └ analysis ────────────┘   Gemini Pro writes the report — every claim tied to
-            ▼               fetched data, with intent-specific structure.
+ ┌ analysis ────────────┐   Gemini Pro writes the report — every claim tied to
+ │                      │   fetched data, with intent-specific structure.
+ └──────────┬───────────┘
+            ▼
  ┌ response_formatter ──┐   Progress events and the final report stream to the
  │                      │   browser over SSE.
  └──────────────────────┘
