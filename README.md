@@ -1,103 +1,153 @@
-# Scoutii — Amazon Research Agent
+<div align="center">
 
-[![CI](https://github.com/MohitRawat017/ScoutII/actions/workflows/ci.yml/badge.svg)](https://github.com/MohitRawat017/ScoutII/actions/workflows/ci.yml)
+# Scoutii
 
-A Perplexity-style conversational agent for Amazon product research and competitive analysis. It uses **LangGraph** to orchestrate a multi-step research pipeline, **Google Gemini** for reasoning, and **SerpApi** for real-time Amazon data.
+**A research agent for the Amazon marketplace.**
 
-## How It Works
+Ask a plain-English question about a product or category — get a grounded
+market report with charts, a competitor table and review sentiment, streamed
+live while the agent works.
 
-A user submits a natural-language research query. The agent:
+[![CI](https://github.com/MohitRawat017/ScoutIII/actions/workflows/ci.yml/badge.svg)](https://github.com/MohitRawat017/ScoutIII/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-informational.svg)](LICENSE)
+![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)
+![Node 22](https://img.shields.io/badge/node-22-339933?logo=nodedotjs&logoColor=white)
+![uv](https://img.shields.io/badge/uv-managed-de5c21?logo=uv&logoColor=white)
 
-1. **Classifies intent** — `search`, `analyze`, `compare`, or `deep_dive` (Gemini Flash)
-2. **Gathers data** — autonomously searches Amazon and fetches product details + review insights (ReAct agent + SerpApi)
-3. **Aggregates** — merges, scores, and computes market stats + revenue estimates
-4. **Analyzes** — generates a structured Markdown market research report (Gemini Pro)
-5. **Returns** — streams progress + final report via SSE
+</div>
 
-## Quick Start
+---
 
-### Prerequisites
+## How a query flows
 
-- Python 3.12+
-- [uv](https://docs.astral.sh/uv/) package manager
-- SerpApi API key ([get one](https://serpapi.com/))
-- Google Gemini API key ([get one](https://aistudio.google.com/apikey))
+```
+ "compare these three yoga mats"
+        │
+        ▼
+ ┌ query_understanding ┐   Gemini Flash reads the query and picks an intent:
+ │                      │   search · analyze · compare · deep-dive
+ └──────────┬───────────┘
+            ▼
+ ┌ react_agent ─────────┐   An autonomous tool loop searches Amazon, opens the
+ │                      │   promising ASINs and pulls Amazon's AI review
+ └──────────┬───────────┘   insights — capped at 8 detail fetches per request.
+            ▼
+ ┌ aggregation ─────────┐   Products are merged, deduped and scored; market
+ │                      │   stats and revenue estimates are computed.
+ └──────────┬───────────┘
+            ▼
+ └ analysis ────────────┘   Gemini Pro writes the report — every claim tied to
+            ▼               fetched data, with intent-specific structure.
+ ┌ response_formatter ──┐   Progress events and the final report stream to the
+ │                      │   browser over SSE.
+ └──────────────────────┘
+```
 
-### Setup
+## Highlights
 
-1. **Clone and install:**
-   ```bash
-   git clone <repo-url>
-   cd scoutii
-   uv sync
-   ```
+- **Grounded, not guessed** — the LLM only ever sees fetched SerpApi data; the
+  report fails soft with a partial-results notice rather than inventing facts.
+- **Autonomous gathering** — a ReAct agent decides which tools to call, in what
+  order, and when it has enough data. Four intents are handled without manual
+  wiring.
+- **Review intelligence** — Amazon's AI-synthesized review summaries: per-topic
+  sentiment, mention counts and star distributions, not a 20-review sample.
+- **Structured reports** — sentiment charts, rating distribution,
+  price-vs-rating scatter and a sortable comparison table, plus the full
+  Markdown report when you want the detail.
+- **Live progress** — every pipeline step streams to the UI, so a 30-second
+  research run feels like a workflow, not a spinner.
+- **Built for real API budgets** — response caching, exponential backoff on
+  transient failures, per-IP rate limiting, an enforced 8-product cap per
+  request, and per-request cost tracking in USD.
 
-2. **Configure environment:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your API keys:
-   #   SERPAPI_KEY=your_serpapi_key
-   #   GEMINIAPI_KEY=your_gemini_api_key
-   ```
+## Quick start
 
-3. **Run the server:**
-   ```bash
-   uv run langgraph dev
-   ```
-   This starts the LangGraph dev server and opens LangGraph Studio.
+You'll need Python 3.12+, [uv](https://docs.astral.sh/uv/), Node.js 20.9+
+(22 LTS recommended), a [SerpApi](https://serpapi.com/) key and a
+[Gemini](https://aistudio.google.com/apikey) key.
 
-   Alternatively, run the FastAPI server directly:
-   ```bash
-   uv run python main.py
-   ```
+```bash
+git clone https://github.com/MohitRawat017/ScoutIII.git
+cd ScoutIII
+uv sync
 
+cp .env.example .env      # add SERPAPI_KEY and GEMINIAPI_KEY
+```
 
-## API Endpoints
+Run the backend (serves the chat API on :8000):
+
+```bash
+uv run python main.py
+```
+
+In a second terminal, run the web app on :3000:
+
+```bash
+cd frontend
+cp .env.local.example .env.local
+npm ci
+npm run dev
+```
+
+Open http://localhost:3000, ask something like *"analyze the espresso machine
+market under $200"*, and watch the report build itself.
+
+Prefer LangGraph Studio? `uv run langgraph dev` runs the graph on its own
+dev server with the Studio UI.
+
+## The web app
+
+The frontend is a small Next.js studio: a landing page that explains the
+agent, and a chat workspace with a live progress rail, usage/cost chips and
+the structured report views. It talks to the backend over a single SSE
+endpoint and renders gracefully when things fail — connection loss and
+partial results both get clear states, not a hang.
+
+## API
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/v1/chat` | POST | SSE streaming chat (progress events → final report → done) |
-| `/api/v1/chat/sync` | POST | Synchronous JSON chat (returns full report) |
+| `/api/v1/chat` | POST | SSE stream: `progress` events, final `data` event, `done` |
+| `/api/v1/chat/sync` | POST | Synchronous JSON chat (returns the full report) |
 | `/health` | GET | Health check |
 
-### Example
-
 ```bash
-# Sync request
-curl -X POST http://localhost:8000/api/v1/chat/sync \
+curl -N -X POST http://localhost:8000/api/v1/chat/sync \
   -H "Content-Type: application/json" \
   -d '{"message": "analyze the yoga mat market on Amazon"}'
 ```
 
-## Features
+The `data` event carries the Markdown answer, a `structured` block
+(intent, insight lists, slim product records, market stats), token usage and
+the estimated cost of the request.
 
-- **Intent Classification**: Classifies queries as search, analyze, compare, or deep-dive
-- **Autonomous Tool-Calling**: ReAct agent decides which tools to call and in what order
-- **Amazon AI Review Insights**: Uses SerpApi's structured review sentiment data (per-topic, mention counts, example snippets)
-- **Revenue Estimates**: Heuristic monthly revenue calculation grounded in sales data
-- **Intent-Specific Reports**: Different report structures for search, analyze, compare, and deep-dive
-- **SSE Streaming**: Real-time progress updates as the agent works
-
-## Development
-
-```bash
-# Lint
-ruff check backend/
-ruff format backend/
-
-# Run tests
-uv run pytest
-```
-
-## Tech Stack
+## Under the hood
 
 | Layer | Technology |
-|-------|-----------|
-| Language | Python 3.12+ |
-| Agent Orchestration | LangGraph |
-| LLM Framework | LangChain |
-| LLMs | Google Gemini Flash (fast) + Pro (analysis) |
-| Data Source | SerpApi (Amazon engines) |
-| API | FastAPI + SSE |
-| Package Manager | uv |
-| Containerization | Docker |
+|-------|------------|
+| Orchestration | LangGraph (5-node pipeline, compiled graph) |
+| Reasoning | Gemini Flash (routing, tool calls) · Gemini Pro (analysis) |
+| Data | SerpApi — `amazon` search + `amazon_product` engines |
+| API | FastAPI + SSE (`sse-starlette`) |
+| Web app | Next.js 16 (App Router) · React 19 · Tailwind CSS 4 · recharts |
+| Testing | pytest (51 tests, unit + integration, coverage in CI) |
+| Tooling | uv · ruff · GitHub Actions (backend + frontend jobs) |
+
+Every external call goes through one tool layer with caching
+(SQLite TTL), retries with backoff, and request scoping — JSON logs with
+request ids, per-node timing and cost estimation come out of the box.
+
+## Project layout
+
+```
+backend/src/          graph wiring, nodes, tools, API, resilience + observability
+backend/tests/        unit + integration suite (pytest)
+frontend/             Next.js web app (landing, chat workspace, report views)
+main.py               FastAPI entry point (:8000)
+langgraph.json        LangGraph Platform config
+```
+
+## License
+
+[MIT](LICENSE)
